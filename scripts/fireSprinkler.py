@@ -55,7 +55,7 @@ def customShadowCallback_Update(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
-        print("property: " + str(payloadDict["state"]["desired"]["property"]))
+        print("sprinkler: " + str(payloadDict["state"]["desired"]["sprinkler"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
@@ -78,7 +78,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
-    print("property: " + str(payloadDict["state"]["property"]))
+    print("sprinkler: " + str(payloadDict["state"]["sprinkler"]))
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
 
@@ -224,8 +224,7 @@ loopCount = 0
 while True:
     myAWSIoTMQTTClient.publish(
         "office/kitchen", device.readingMessage(), 1)
-    JSONPayload = '{"state":{"desired":{"sprinkler":' + \
-        'deactivated"}}}'
+    JSONPayload = '{"state":{"desired":{"sprinkler":"deactivated"}}}'
     Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
     loopCount += 1
     time.sleep(1)
