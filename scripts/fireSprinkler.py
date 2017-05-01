@@ -30,8 +30,9 @@ class FireSprinkler:
         self.reading = 0
         self.state = 'Deactivated'
 
+    ''' retrieve a message describing internal sensor reading '''
     def readingMessage(self):
-        return "Smoke level at " + str(self.reading)
+        return self.name + ": smoke level at " + str(self.reading)
 
 # Shadow JSON schema:
 #
@@ -178,11 +179,11 @@ logger.addHandler(streamHandler)
 myAWSIoTMQTTShadowClient = None
 if useWebsocket:
     myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient(
-        "fire-sprinkler", useWebsocket=True)
+        "kit-fs-001", useWebsocket=True)
     myAWSIoTMQTTShadowClient.configureEndpoint(host, 443)
     myAWSIoTMQTTShadowClient.configureCredentials(rootCAPath)
 else:
-    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient("fire-sprinkler")
+    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient("kit-fs-001")
     myAWSIoTMQTTShadowClient.configureEndpoint(host, 8883)
     myAWSIoTMQTTShadowClient.configureCredentials(
         rootCAPath, privateKeyPath, certificatePath)
@@ -204,16 +205,16 @@ myAWSIoTMQTTShadowClient.configureConnectDisconnectTimeout(10)  # 10 sec
 myAWSIoTMQTTShadowClient.configureMQTTOperationTimeout(5)  # 5 sec
 
 # Create a device
-device = FireSprinkler("fire-sprinkler")
+device = FireSprinkler("kit-fs-001")
 
 # Connect and subscribe to AWS IoT
 myAWSIoTMQTTShadowClient.connect()
-myAWSIoTMQTTClient.subscribe("office/kitchen", 1, customCallback)
+myAWSIoTMQTTClient.subscribe("office/kitchen/kit-fs-001", 1, customCallback)
 time.sleep(2)
 
 # Create a deviceShadow with persistent subscription
 Bot = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(
-    "fire-sprinkler", True)
+    "kit-fs-001", True)
 
 # Delete shadow JSON doc
 Bot.shadowDelete(customShadowCallback_Delete, 5)
