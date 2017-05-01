@@ -15,7 +15,7 @@
  */
  '''
 
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 import sys
 import logging
 import time
@@ -186,11 +186,13 @@ else:
         rootCAPath, privateKeyPath, certificatePath)
 
 
+myAWSIoTMQTTClient = myAWSIoTMQTTShadowClient.getMQTTConnection()
+
 # AWSIoTMQTTClient connection configuration
 myAWSIoTMQTTShadowClient.configureAutoReconnectBackoffTime(1, 32, 20)
 # Infinite offline Publish queueing
-myAWSIoTMQTTShadowClient.configureOfflinePublishQueueing(-1)
-myAWSIoTMQTTShadowClient.configureDrainingFrequency(2)  # Draining: 2 Hz
+myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)
+myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
 myAWSIoTMQTTShadowClient.configureConnectDisconnectTimeout(10)  # 10 sec
 myAWSIoTMQTTShadowClient.configureMQTTOperationTimeout(5)  # 5 sec
 
@@ -204,7 +206,6 @@ device = FireSprinkler("fire-sprinkler")
 
 # Connect and subscribe to AWS IoT
 myAWSIoTMQTTShadowClient.connect()
-myAWSIoTMQTTClient = myAWSIoTMQTTShadowClient.getMQTTConnection()
 myAWSIoTMQTTClient.subscribe("office/kitchen", 1, customCallback)
 time.sleep(2)
 
