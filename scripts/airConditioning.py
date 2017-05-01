@@ -64,8 +64,8 @@ def customShadowCallback_Update(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
-        print("sprinkler: " +
-              str(payloadDict["state"]["desired"]["sprinkler"]))
+        print("ac: " +
+              str(payloadDict["state"]["desired"]["ac"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
@@ -88,7 +88,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
-    print("sprinkler: " + str(payloadDict["state"]["sprinkler"]))
+    print("ac: " + str(payloadDict["state"]["ac"]))
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
 
@@ -106,10 +106,10 @@ def customCallback(client, userdata, message):
 # Usage
 usageInfo = """Usage:
 Use certificate based mutual authentication:
-python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -c <certFilePath> -k <privateKeyFilePath>
+python airConditioning.py -e <endpoint> -r <rootCAFilePath> -c <certFilePath> -k <privateKeyFilePath>
 Use MQTT over WebSocket:
-python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -w
-Type "python basicPubSub.py -h" for available options.
+python airConditioning.py -e <endpoint> -r <rootCAFilePath> -w
+Type "python airConditioning.py -h" for available options.
 """
 # Help info
 helpInfo = """-e, --endpoint
@@ -186,11 +186,11 @@ logger.addHandler(streamHandler)
 myAWSIoTMQTTShadowClient = None
 if useWebsocket:
     myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient(
-        "air-conditioning", useWebsocket=True)
+        "kit-ac-001", useWebsocket=True)
     myAWSIoTMQTTShadowClient.configureEndpoint(host, 443)
     myAWSIoTMQTTShadowClient.configureCredentials(rootCAPath)
 else:
-    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient("air-conditioning")
+    myAWSIoTMQTTShadowClient = AWSIoTMQTTShadowClient("kit-ac-001")
     myAWSIoTMQTTShadowClient.configureEndpoint(host, 8883)
     myAWSIoTMQTTShadowClient.configureCredentials(
         rootCAPath, privateKeyPath, certificatePath)
@@ -212,17 +212,17 @@ myAWSIoTMQTTShadowClient.configureConnectDisconnectTimeout(10)  # 10 sec
 myAWSIoTMQTTShadowClient.configureMQTTOperationTimeout(5)  # 5 sec
 
 # Create a device
-device = FireSprinkler("air-conditioning")
+device = AirConditioning("kit-ac-001")
 
 # Connect and subscribe to AWS IoT
 myAWSIoTMQTTShadowClient.connect()
 myAWSIoTMQTTClient.subscribe(
-    "office/kitchen/air-conditioning", 1, customCallback)
+    "office/kitchen/kit-ac-001", 1, customCallback)
 time.sleep(2)
 
 # Create a deviceShadow with persistent subscription
 Bot = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(
-    "air-conditioning", True)
+    "kit-ac-001", True)
 
 # Delete shadow JSON doc
 Bot.shadowDelete(customShadowCallback_Delete, 5)

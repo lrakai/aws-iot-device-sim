@@ -99,10 +99,10 @@ def customCallback(client, userdata, message):
 # Usage
 usageInfo = """Usage:
 Use certificate based mutual authentication:
-python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -c <certFilePath> -k <privateKeyFilePath>
+python fireSprinkler.py -e <endpoint> -r <rootCAFilePath> -c <certFilePath> -k <privateKeyFilePath>
 Use MQTT over WebSocket:
-python basicPubSub.py -e <endpoint> -r <rootCAFilePath> -w
-Type "python basicPubSub.py -h" for available options.
+python fireSprinkler.py -e <endpoint> -r <rootCAFilePath> -w
+Type "python fireSprinkler.py -h" for available options.
 """
 # Help info
 helpInfo = """-e, --endpoint
