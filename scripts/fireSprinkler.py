@@ -219,15 +219,18 @@ Bot = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(
 # Delete shadow JSON doc
 Bot.shadowDelete(customShadowCallback_Delete, 5)
 
+# Reset shadow doc
+JSONPayload = '{"state":{"desired":{"sprinkler":"deactivated"}}}'
+Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+
 # Listen on deltas
 Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 
 # Update shadow in a loop
 loopCount = 0
 while True:
+    print("Publishing message to office/kitchen topic")
     myAWSIoTMQTTClient.publish(
         "office/kitchen", device.readingMessage(), 1)
-    JSONPayload = '{"state":{"desired":{"sprinkler":"deactivated"}}}'
-    Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
     loopCount += 1
     time.sleep(1)
