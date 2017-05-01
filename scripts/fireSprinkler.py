@@ -34,6 +34,10 @@ class FireSprinkler:
     def readingMessage(self):
         return self.name + ": smoke level at " + str(self.reading)
 
+    ''' retrieve a JSON payload describing internal sensor reading '''
+    def readingPayload(self):
+        return '{"smoke": ' + str(self.reading) + '}'
+
 # Shadow JSON schema:
 #
 # Name: Bot
@@ -229,8 +233,8 @@ Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 # Update shadow in a loop
 loopCount = 0
 while True:
-    print("Publishing message to office/kitchen topic")
+    print("Publishing message to office/kitchen: " + device.readingMessage())
     myAWSIoTMQTTClient.publish(
-        "office/kitchen", device.readingMessage(), 1)
+        "office/kitchen", device.readingPayload(), 1)
     loopCount += 1
     time.sleep(1)
