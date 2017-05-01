@@ -24,18 +24,19 @@ import json
 
 
 class FireSprinkler:
+    ''' Fire sprinkler device '''
 
     def __init__(self, name):
         self.name = name
         self.reading = 0
         self.state = 'Deactivated'
 
-    ''' retrieve a message describing internal sensor reading '''
     def readingMessage(self):
+        ''' retrieve a message describing internal sensor reading '''
         return self.name + ": smoke level at " + str(self.reading)
 
-    ''' retrieve a JSON payload describing internal sensor reading '''
     def readingPayload(self):
+        ''' retrieve a JSON payload describing internal sensor reading '''
         return '{"smoke": ' + str(self.reading) + '}'
 
 # Shadow JSON schema:

@@ -24,15 +24,20 @@ import json
 
 
 class AirConditioning:
+    ''' Air conditioning device '''
 
     def __init__(self, name):
         self._name = name
         self._reading = 72.0
         self._state = "off"
 
-    ''' retrieve a message describing internal sensor reading '''
     def readingMessage(self):
+        ''' retrieve a message describing internal sensor reading '''
         return self._name + ": temperature at " + self._getReading()
+
+    def readingPayload(self):
+        ''' retrieve a JSON payload describing internal sensor reading '''
+        return '{"temperature": ' + str(self._reading) + '}'
 
     def _getReading(self):
         if self._state == "off" and self._reading < 90:
