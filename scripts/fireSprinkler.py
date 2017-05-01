@@ -22,12 +22,13 @@ import time
 import getopt
 import json
 
+
 class FireSprinkler:
 
     def __init__(self, name):
         self.name = name
         self.reading = 0
-        self.state = 'Deactivated' 
+        self.state = 'Deactivated'
 
     def readingMessage(self):
         return "Smoke level at " + str(self.reading)
@@ -55,7 +56,8 @@ def customShadowCallback_Update(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
-        print("sprinkler: " + str(payloadDict["state"]["desired"]["sprinkler"]))
+        print("sprinkler: " +
+              str(payloadDict["state"]["desired"]["sprinkler"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
