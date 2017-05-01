@@ -30,7 +30,7 @@ class FireSprinkler:
         self.state = 'Deactivated' 
 
     def readingMessage(self):
-        return "Smoke level at " + self.reading
+        return "Smoke level at " + str(self.reading)
 
 # Shadow JSON schema:
 #
