@@ -60,6 +60,28 @@ class AirConditioning:
 
 # Custom Shadow callback
 
+def customShadowCallback_Get(payload, responseStatus, token):
+    # payload is a JSON string ready to be parsed using json.loads(...)
+    # in both Py2.x and Py3.x
+    if responseStatus == "timeout":
+        print("Get request " + token + " time out!")
+    if responseStatus == "accepted":
+        payloadDict = json.loads(payload)
+        print("~~~~~~~~~~~~~~~~~~~~~~~")
+        print("Get request with token: " + token + " accepted!")
+        print("air-conditioning: " +
+              str(payloadDict["state"]["desired"]["air-conditioning"]))
+        print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
+
+        JSONPayload = '{"state":{"desired":{"air-conditioning":"' + \
+            str(payloadDict["state"]["desired"]["air-conditioning"]) + '"}}}'
+        Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+    if responseStatus == "rejected":
+        print("Update request " + token + " rejected!")
+        # use default off state
+        JSONPayload = '{"state":{"desired":{"air-conditioning":"off"}}}'
+        Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+
 
 def customShadowCallback_Update(payload, responseStatus, token):
     # payload is a JSON string ready to be parsed using json.loads(...)
@@ -70,7 +92,7 @@ def customShadowCallback_Update(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
-        print("ac: " +
+        print("air-conditioning: " +
               str(payloadDict["state"]["desired"]["air-conditioning"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
@@ -99,6 +121,8 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print("+++++++++++++++++++++++\n\n")
 
 # Custom MQTT message callback
+
+
 def customCallback(client, userdata, message):
     print("Received a new message: ")
     print(message.payload)
@@ -228,8 +252,11 @@ time.sleep(2)
 Bot = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(
     "kit-ac-001", True)
 
+# Attempt to get shadow
+Bot.shadowGet(customShadowCallback_Get, 5)
+
 # Delete shadow JSON doc
-Bot.shadowDelete(customShadowCallback_Delete, 5)
+#Bot.shadowDelete(customShadowCallback_Delete, 5)
 
 # Listen on deltas
 Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
