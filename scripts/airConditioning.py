@@ -29,7 +29,7 @@ class AirConditioning:
     def __init__(self, name):
         self._name = name
         self._reading = 72.0
-        self._payload = json.loads('{"state":{"desired":{"air-conditioning":"off"}}}')
+        self._state = "off"
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
@@ -39,20 +39,16 @@ class AirConditioning:
         ''' retrieve a JSON payload describing internal sensor reading '''
         return '{"temperature": ' + str(self._reading) + '}'
 
-    def setState(self, payload):
-        ''' set the state JSON document of the device '''
-        self._payload = payload
+    def setState(self, state):
+        ''' set the state of the device '''
+        self._state = state
 
     def _getNextReading(self):
-        if self._state() == "off" and self._reading < 90:
+        if self._state == "off" and self._reading < 90:
             self._reading += 0.1
-        elif self._state() == "on" and self._reading > 50:
+        elif self._state == "on" and self._reading > 50:
             self._reading -= 0.1
         return self._reading
-
-    def _state(self):
-        payloadDict = json.loads(self._payload)
-        return payloadDict["state"]["desired"]["air-conditioning"]
 
 
 # Shadow JSON schema:
@@ -81,7 +77,7 @@ def customShadowCallback_Get(payload, responseStatus, token):
               payloadDict["state"]["desired"]["air-conditioning"])
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
 
-        device.setState(payload)
+        device.setState(payloadDict["state"]["desired"]["air-conditioning"])
     if responseStatus == "rejected":
         print("Get request " + token + " rejected. No shadow state set.")
 
@@ -122,7 +118,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print("ac: " + payloadDict["state"]["air-conditioning"])
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
-    device.setState(payload)
+    device.setState(payloadDict["state"]["air-conditioning"])
 
 # Custom MQTT message callback
 
