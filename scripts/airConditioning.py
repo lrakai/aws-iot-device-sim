@@ -80,7 +80,7 @@ def customShadowCallback_Get(payload, responseStatus, token):
         device.setState(payloadDict["state"]["desired"]["air-conditioning"])
     if responseStatus == "rejected":
         print("Get request " + token + " rejected. No shadow state set. Creating default shadow.")
-        Bot.shadowUpdate('{"air-conditioning":"off"}', customShadowCallback_Update, 5)
+        Bot.shadowUpdate('{"state":{"desired":{"air-conditioning":"off"}}}', customShadowCallback_Update, 5)
 
 
 def customShadowCallback_Update(payload, responseStatus, token):
