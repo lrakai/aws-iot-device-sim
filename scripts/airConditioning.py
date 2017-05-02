@@ -264,9 +264,8 @@ Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 # Update shadow in a loop
 loopCount = 0
 while True:
+    print("Publishing message to office/kitchen: " + device.readingMessage())
     myAWSIoTMQTTClient.publish(
         "office/kitchen", device.readingPayload(), 1)
-    JSONPayload = '{"state":{"desired":{"air-conditioning":"off"}}}'
-    Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
     loopCount += 1
     time.sleep(1)
