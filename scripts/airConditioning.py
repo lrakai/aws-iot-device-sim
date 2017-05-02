@@ -29,7 +29,7 @@ class AirConditioning:
     def __init__(self, name):
         self._name = name
         self._reading = 72.0
-        self._payload = None
+        self._payload = json.loads('{"state":{"desired":{"air-conditioning":"off"}}}')
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
@@ -81,15 +81,9 @@ def customShadowCallback_Get(payload, responseStatus, token):
               payloadDict["state"]["desired"]["air-conditioning"])
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
 
-        JSONPayload = '{"state":{"desired":{"air-conditioning":"' + \
-            str(payloadDict["state"]["desired"]["air-conditioning"]) + '"}}}'
-        Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+        device.setState(payload)
     if responseStatus == "rejected":
-        print("Get request " + token + " rejected. Setting default shadow state.")
-        # use default off state
-        JSONPayload = '{"state":{"desired":{"air-conditioning":"off"}}}'
-        device.setState(JSONPayload)
-        Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+        print("Get request " + token + " rejected. No shadow state set.")
 
 
 def customShadowCallback_Update(payload, responseStatus, token):
