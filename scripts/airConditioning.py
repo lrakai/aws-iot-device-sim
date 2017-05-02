@@ -79,7 +79,8 @@ def customShadowCallback_Get(payload, responseStatus, token):
 
         device.setState(payloadDict["state"]["desired"]["air-conditioning"])
     if responseStatus == "rejected":
-        print("Get request " + token + " rejected. No shadow state set.")
+        print("Get request " + token + " rejected. No shadow state set. Creating default shadow.")
+        Bot.shadowUpdate('{"air-conditioning":"off"}', customShadowCallback_Update, 5)
 
 
 def customShadowCallback_Update(payload, responseStatus, token):
@@ -261,7 +262,7 @@ Bot.shadowGet(customShadowCallback_Get, 5)
 # Listen on deltas
 Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 
-# Update shadow in a loop
+# Publish messages in a loop
 loopCount = 0
 while True:
     print("Publishing message to office/kitchen: " + device.readingMessage())
