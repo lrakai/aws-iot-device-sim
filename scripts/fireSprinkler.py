@@ -266,7 +266,8 @@ def get_char_keyboard_nonblock():
 def testSmoke(device):
     '''Increase the smoke level is space is pressed'''
     c = get_char_keyboard_nonblock()
-    if c == 32:
+    if c == " ":
+        print("somethings burning...")
         device.setSmoke(1)
 
 
