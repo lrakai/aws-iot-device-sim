@@ -115,7 +115,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
-    print("ac: " + payloadDict["state"]["air-conditioning"])
+    print("air-conditioning: " + payloadDict["state"]["air-conditioning"])
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
     device.setState(payloadDict["state"]["air-conditioning"])
