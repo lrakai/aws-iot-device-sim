@@ -33,7 +33,7 @@ class AirConditioning:
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
-        return self._name + ": temperature at " + self._getNextReading()
+        return self._name + ": temperature at " + str(self._getNextReading())
 
     def readingPayload(self):
         ''' retrieve a JSON payload describing internal sensor reading '''
