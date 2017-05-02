@@ -88,8 +88,8 @@ def customShadowCallback_Delete(payload, responseStatus, token):
 
 
 def customShadowCallback_Delta(payload, responseStatus, token):
-        # payload is a JSON string ready to be parsed using json.loads(...)
-        # in both Py2.x and Py3.x
+    # payload is a JSON string ready to be parsed using json.loads(...)
+    # in both Py2.x and Py3.x
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
@@ -98,8 +98,6 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print("+++++++++++++++++++++++\n\n")
 
 # Custom MQTT message callback
-
-
 def customCallback(client, userdata, message):
     print("Received a new message: ")
     print(message.payload)
@@ -180,7 +178,7 @@ if missingConfiguration:
 
 # Configure logging
 logger = logging.getLogger("AWSIoTPythonSDK.core")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 streamHandler = logging.StreamHandler()
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -239,7 +237,7 @@ Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 loopCount = 0
 while True:
     myAWSIoTMQTTClient.publish(
-        "office/kitchen", device.readingMessage(), 1)
+        "office/kitchen", device.readingPayload(), 1)
     JSONPayload = '{"state":{"desired":{"air-conditioning":"off"}}}'
     Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
     loopCount += 1
