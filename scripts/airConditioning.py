@@ -33,17 +33,18 @@ class AirConditioning:
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
-        return self._name + ": temperature at " + self._getReading()
+        return self._name + ": temperature at " + self._getNextReading()
 
     def readingPayload(self):
         ''' retrieve a JSON payload describing internal sensor reading '''
         return '{"temperature": ' + str(self._reading) + '}'
 
-    def _getReading(self):
+    def _getNextReading(self):
         if self._state == "off" and self._reading < 90:
             self._reading += 0.1
         elif self._state == "on" and self._reading > 50:
             self._reading -= 0.1
+        return self._reading
 
 
 # Shadow JSON schema:
