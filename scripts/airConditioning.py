@@ -29,7 +29,7 @@ class AirConditioning:
     def __init__(self, name):
         self._name = name
         self._reading = 72.0
-        self._state = "off"
+        self._payload = None
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
@@ -39,12 +39,20 @@ class AirConditioning:
         ''' retrieve a JSON payload describing internal sensor reading '''
         return '{"temperature": ' + str(self._reading) + '}'
 
+    def setState(self, payload):
+        ''' set the state JSON document of the device '''
+        self._payload = payload
+
     def _getNextReading(self):
-        if self._state == "off" and self._reading < 90:
+        if self._state() == "off" and self._reading < 90:
             self._reading += 0.1
-        elif self._state == "on" and self._reading > 50:
+        elif self._state() == "on" and self._reading > 50:
             self._reading -= 0.1
         return self._reading
+
+    def _state(self):
+        payloadDict = json.loads(self._payload)
+        return payloadDict["state"]["desired"]["air-conditioning"]
 
 
 # Shadow JSON schema:
@@ -70,16 +78,17 @@ def customShadowCallback_Get(payload, responseStatus, token):
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Get request with token: " + token + " accepted!")
         print("air-conditioning: " +
-              str(payloadDict["state"]["desired"]["air-conditioning"]))
+              payloadDict["state"]["desired"]["air-conditioning"])
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
 
         JSONPayload = '{"state":{"desired":{"air-conditioning":"' + \
             str(payloadDict["state"]["desired"]["air-conditioning"]) + '"}}}'
         Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
     if responseStatus == "rejected":
-        print("Update request " + token + " rejected!")
+        print("Get request " + token + " rejected. Setting default shadow state.")
         # use default off state
         JSONPayload = '{"state":{"desired":{"air-conditioning":"off"}}}'
+        device.setState(JSONPayload)
         Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
 
 
@@ -93,7 +102,7 @@ def customShadowCallback_Update(payload, responseStatus, token):
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
         print("air-conditioning: " +
-              str(payloadDict["state"]["desired"]["air-conditioning"]))
+              payloadDict["state"]["desired"]["air-conditioning"])
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
@@ -116,7 +125,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
-    print("ac: " + str(payloadDict["state"]["air-conditioning"]))
+    print("ac: " + payloadDict["state"]["air-conditioning"])
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
 
