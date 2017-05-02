@@ -71,7 +71,7 @@ def customShadowCallback_Update(payload, responseStatus, token):
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Update request with token: " + token + " accepted!")
         print("ac: " +
-              str(payloadDict["state"]["desired"]["ac"]))
+              str(payloadDict["state"]["desired"]["air-conditioning"]))
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
     if responseStatus == "rejected":
         print("Update request " + token + " rejected!")
@@ -94,7 +94,7 @@ def customShadowCallback_Delta(payload, responseStatus, token):
     print(responseStatus)
     payloadDict = json.loads(payload)
     print("++++++++DELTA++++++++++")
-    print("ac: " + str(payloadDict["state"]["ac"]))
+    print("ac: " + str(payloadDict["state"]["air-conditioning"]))
     print("version: " + str(payloadDict["version"]))
     print("+++++++++++++++++++++++\n\n")
 
