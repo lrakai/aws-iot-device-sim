@@ -16,6 +16,7 @@
  '''
 
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
+from pynput import keyboard
 import sys
 import logging
 import time
@@ -27,17 +28,20 @@ class FireSprinkler:
     ''' Fire sprinkler device '''
 
     def __init__(self, name):
-        self.name = name
-        self.reading = 0
-        self.state = 'Deactivated'
+        self._name = name
+        self._reading = 0
+        self._state = 'Deactivated'
 
     def readingMessage(self):
         ''' retrieve a message describing internal sensor reading '''
-        return self.name + ": smoke level at " + str(self.reading)
+        return self._name + ": smoke level at " + str(self._reading)
 
     def readingPayload(self):
         ''' retrieve a JSON payload describing internal sensor reading '''
-        return '{"smoke": ' + str(self.reading) + '}'
+        return '{"smoke": ' + str(self._reading) + '}'
+
+    def setSmoke(self, smoke):
+        self._reading = smoke
 
 # Shadow JSON schema:
 #
@@ -222,20 +226,42 @@ Bot = myAWSIoTMQTTShadowClient.createShadowHandlerWithName(
     "kit-fs-001", True)
 
 # Delete shadow JSON doc
-Bot.shadowDelete(customShadowCallback_Delete, 5)
+#Bot.shadowDelete(customShadowCallback_Delete, 5)
 
 # Reset shadow doc
 JSONPayload = '{"state":{"desired":{"sprinkler":"deactivated"}}}'
-Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
+#Bot.shadowUpdate(JSONPayload, customShadowCallback_Update, 5)
 
 # Listen on deltas
 Bot.shadowRegisterDeltaCallback(customShadowCallback_Delta)
 
-# Update shadow in a loop
-loopCount = 0
-while True:
-    print("Publishing message to office/kitchen: " + device.readingMessage())
-    myAWSIoTMQTTClient.publish(
-        "office/kitchen", device.readingPayload(), 1)
-    loopCount += 1
-    time.sleep(1)
+# capture key presses
+
+
+def on_press(key):
+    if key == keyboard.Key.space:
+        print("creating smoke")
+
+
+def on_release(key):
+    if key == keyboard.Key.esc:
+        # Stop listener
+        return False
+
+
+# Collect events until released
+with keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release) as listener:
+
+    # Publish messages in a loop
+    loopCount = 0
+    while True:
+        print("Publishing message to office/kitchen: " + device.readingMessage())
+        myAWSIoTMQTTClient.publish(
+            "office/kitchen", device.readingPayload(), 1)
+        loopCount += 1
+        device.setSmoke(0)
+        time.sleep(1)
+
+    listener.join()
