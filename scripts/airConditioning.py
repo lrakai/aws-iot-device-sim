@@ -73,11 +73,15 @@ def customShadowCallback_Get(payload, responseStatus, token):
         payloadDict = json.loads(payload)
         print("~~~~~~~~~~~~~~~~~~~~~~~")
         print("Get request with token: " + token + " accepted!")
-        print("air-conditioning: " +
-              payloadDict["state"]["desired"]["air-conditioning"])
+        if("desired" in payloadDict["state"]):
+            print("No state found. Setting default state")
+            Bot.shadowUpdate('{"state":{"desired":{"air-conditioning":"off"}}}', customShadowCallback_Update, 5)
+        else:
+            print("air-conditioning: " +
+                payloadDict["state"]["desired"]["air-conditioning"])
+            device.setState(payloadDict["state"]["desired"]["air-conditioning"])
+            
         print("~~~~~~~~~~~~~~~~~~~~~~~\n\n")
-
-        device.setState(payloadDict["state"]["desired"]["air-conditioning"])
     if responseStatus == "rejected":
         print("Get request " + token + " rejected. No shadow state set. Creating default shadow.")
         Bot.shadowUpdate('{"state":{"desired":{"air-conditioning":"off"}}}', customShadowCallback_Update, 5)
