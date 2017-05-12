@@ -92,7 +92,7 @@
                                 "git clone https://github.com/lrakai/aws-iot-device-sim.git /home/ec2-user/iot/aws-iot-device-sim\n",
                                 "echo '#!/bin/bash\n",
                                 "source /home/ec2-user/iot/bin/activate\n",
-                                "python /home/ec2-user/iot/aws-iot-device-sim/scripts/fireSprinkler.py \"${@:1}\"",
+                                "python /home/ec2-user/iot/aws-iot-device-sim/scripts/fireSprinkler.py \"${@:1}\"\n",
                                 "deactivate' > /home/ec2-user/iot/fireSprinkler.sh\n",
                                 "chmod ugo+x /home/ec2-user/iot/fireSprinkler.sh\n",
                                 "echo '#!/bin/bash\n",
