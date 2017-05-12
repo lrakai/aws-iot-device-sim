@@ -1,0 +1,369 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Introduction to AWS IoT",
+    "Parameters": {
+        "Region": {
+            "Type": "String",
+            "Default": "us-west-2"
+        }
+    },
+    "Mappings": {
+        "SubnetConfig": {
+            "VPC": {
+                "CIDR": "10.0.0.0/20"
+            },
+            "SubnetA": {
+                "CIDR": "10.0.0.0/24",
+                "AZ": "us-west-2a"
+            }
+        },
+        "Ec2InstanceConfig": {
+            "Security": {
+                "KeyName": "aws-key"
+            },
+            "Metadata": {
+                "InstanceName": "iot-device-simulator"
+            }
+        },
+        "UserConfig": {
+            "Login": {
+                "Name": "iot-user",
+                "Pass": "ca-lab-user"
+            }
+        }
+    },
+    "Resources": {
+        "Ec2Instance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::FindInMap": [
+                        "SubnetConfig",
+                        "SubnetA",
+                        "AZ"
+                    ]
+                },
+                "IamInstanceProfile": {
+                    "Ref": "Ec2InstanceProfile"
+                },
+                "ImageId": "ami-4836a428",
+                "InstanceType": "t2.micro",
+                "KeyName": {
+                    "Fn::FindInMap": [
+                        "Ec2InstanceConfig",
+                        "Security",
+                        "KeyName"
+                    ]
+                },
+                "SecurityGroupIds": [
+					{
+						"Ref": "Ec2SecurityGroup"
+					}
+				],
+                "SubnetId": {
+                    "Ref": "SubnetA"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::FindInMap": [
+                                "Ec2InstanceConfig",
+                                "Metadata",
+                                "InstanceName"
+                            ]
+                        }
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -xe\n",
+                                "yum -y install git\n",
+                                "mkdir /home/ec2-user/iot\n",
+                                "virtualenv /home/ec2-user/iot\n",
+                                "mkdir /home/ec2-user/iot/certs\n",
+                                "wget https://www.symantec.com/content/en/us/enterprise/verisign/roots/VeriSign-Class%203-Public-Primary-Certification-Authority-G5.pem -O /home/ec2-user/iot/certs/root.pem\n",
+                                "source /home/ec2-user/iot/bin/activate\n",
+                                "pip install AWSIoTPythonSDK\n",
+                                "deactivate\n",
+                                "git clone https://github.com/lrakai/aws-iot-device-sim.git /home/ec2-user/iot/aws-iot-device-sim\n",
+                                "echo '#!/bin/bash\n",
+                                "source /home/ec2-user/iot/bin/activate\n",
+                                "python /home/ec2-user/iot/aws-iot-device-sim/scripts/fireSprinkler.py \"${@:1}\"",
+                                "deactivate' > /home/ec2-user/iot/fireSprinkler.sh\n",
+                                "chmod ugo+x /home/ec2-user/iot/fireSprinkler.sh\n",
+                                "echo '#!/bin/bash\n",
+                                "source /home/ec2-user/iot/bin/activate\n",
+                                "python /home/ec2-user/iot/aws-iot-device-sim/scripts/airConditioning.py \"${@:1}\"\n",
+                                "deactivate' > /home/ec2-user/iot/airConditioning.sh\n",
+                                "chmod ugo+x /home/ec2-user/iot/airConditioning.sh\n",
+								"chown -R ec2-user:ec2-user /home/ec2-user\n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "IotRepublishRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "iot.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "iot-publish",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": {
+                                "Effect": "Allow",
+                                "Action": "iot:Publish",
+                                "Resource": "arn:aws:iot:us-west-2:*:topic/office/kitchen/alarm"
+                            }
+                        }
+                    }
+                ],
+                "RoleName": "iot-republish-role"
+            }
+        },
+        "Ec2Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "iot-full-access",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iot:*"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "Ec2InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "Ec2Role"
+                    }
+                ]
+            }
+        },
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Fn::FindInMap": [
+                        "SubnetConfig",
+                        "VPC",
+                        "CIDR"
+                    ]
+                },
+                "EnableDnsSupport": true,
+                "EnableDnsHostnames": true,
+                "Tags": [
+                    {
+                        "Key": "Lab",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "Name",
+                        "Value": "Lab VPC"
+                    }
+                ]
+            }
+        },
+        "SubnetA": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "MapPublicIpOnLaunch": true,
+                "AvailabilityZone": {
+                    "Fn::FindInMap": [
+                        "SubnetConfig",
+                        "SubnetA",
+                        "AZ"
+                    ]
+                },
+                "CidrBlock": {
+                    "Fn::FindInMap": [
+                        "SubnetConfig",
+                        "SubnetA",
+                        "CIDR"
+                    ]
+                }
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "InternetGatewayAttach": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "PublicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        },
+        "PublicRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "SubnetARouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "SubnetA"
+                },
+                "RouteTableId": {
+                    "Ref": "PublicRouteTable"
+                }
+            }
+        },
+        "Ec2SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "ssh only",
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "User": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "LoginProfile": {
+                    "Password": {
+                        "Fn::FindInMap": [
+                            "UserConfig",
+                            "Login",
+                            "Pass"
+                        ]
+                    }
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "iot-user-policy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "ec2:Describe*",
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iot:*"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iam:ListRoles",
+                                        "iam:PassRole"
+                                    ],
+                                    "Resource": [
+                                        "*"
+                                    ]
+                                },
+								{
+									"Effect": "Allow",
+									"Action": [
+										"cloudwatch:GetMetricStatistics"
+									],
+									"Resource": [
+										"*"
+									]
+								}
+                            ]
+                        }
+                    }
+                ],
+                "UserName": {
+                    "Fn::FindInMap": [
+                        "UserConfig",
+                        "Login",
+                        "Name"
+                    ]
+                }
+            }
+        }
+    }
+}
